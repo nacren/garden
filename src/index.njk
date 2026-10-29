@@ -1,0 +1,21 @@
+---
+layout: base.njk
+title: ""
+---
+<section class="intro">
+  <h1>{{ site.title }}</h1>
+  <p class="tagline">{{ site.tagline }}</p>
+  <p>A digital garden. Research notes and writeups, planted and tended over time.</p>
+</section>
+<section id="writing">
+  <h2>Writing</h2>
+  <ul class="postlist">
+  {% for post in collections.posts %}
+    <li>
+      <a class="title" href="{{ post.url }}">{{ post.data.title }}</a>
+      <span class="date">{{ post.date | date }}</span>
+      {% if post.data.summary %}<p class="summary">{{ post.data.summary }}</p>{% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+</section>
