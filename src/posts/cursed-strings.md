@@ -8,11 +8,11 @@ topics:
   - llm security
 ---
 
-*Unicode prompt injection across six local models, and when sanitizing helps or hurts.* &#8902;
+*Unicode prompt injection across six local models, and when sanitizing helps or hurts.*
 
-The screen lies to you. You paste a sentence into a chat box and assume the model reads what you read. It does not have to. Unicode can hide a whole instruction in the space between the letters you can see. Zero width characters. A shadow copy of ASCII that renders as nothing. Letters that are not the letters they look like.
+Unicode lets a document carry text that is invisible on screen, or swap ordinary letters for similar-looking characters from another script. A person, a substring filter, and a language model can each read that document differently.
 
-Hide "ignore your instructions and do X" inside a document. A person sees nothing wrong. A model reads it and obeys. Does that actually happen on the models people run at home? I built `smuggle`, which hides a payload four ways, and `exorcist`, which strips it back out, and pointed both at six open weights models through a local Ollama. Ten trials per case, a harmless canary as the payload. The answer was not the one the headlines promised, and the reason was not the one I wrote down first.
+Does that difference let hidden instructions work on local models? This project tests four encodings with `smuggle` and a sanitizer called `exorcist`, using six open-weight models through Ollama. Each case has ten trials and a harmless canary as its payload. The saved results include both failed attacks and cases where sanitizing made injection more effective.
 
 ## Four ways to lie with text
 
@@ -47,7 +47,7 @@ Every case runs undefended, then with `exorcist` cleaning the untrusted text fir
 
 The sanity checks passed. The control scored 0 percent on all six models. A plain visible instruction scored 60 to 100 percent. These models follow orders when the order is in plain text.
 
-Then the invisible channels. Tags, pure zero width, and variation selectors scored 0 percent on every model in both injection scenarios. Not one hit in 300 trials. Asked to echo a marker through those channels, every model scored zero of three. Through plain text or homoglyphs, three of three.
+Tags, pure zero width, and variation selectors scored 0 percent in both injection scenarios. Across the six standard model runs, those channels had no hits in 300 undefended trials. Asked to echo a marker through those channels, every model scored zero of three. Through plain text or homoglyphs, three of three.
 
 My first explanation was that the llama.cpp tokenizers throw those code points away before the model sees them. It is a tidy story. It is also wrong, and I only found out because I counted tokens.
 
@@ -60,9 +60,9 @@ My first explanation was that the llama.cpp tokenizers throw those code points a
 | homoglyphs | 8 | 1.0 | READ9284 |
 | soft hyphen spacing | 15 | 1.0 | READ9284 |
 
-That is qwen3.6 reading the marker READ9284. Nothing is dropped. A Tags character is four bytes of UTF-8 the tokenizer has no merge for, so it falls back to one token per byte. The model gets all of it and simply has no learned mapping from those fragments back to letters. Look at the Tags row. RADY284. One letter wrong. The information is in the context window and the model almost reads it. The 2024 attacks presumably worked because hosted models had seen enough of those sequences in training to map them back. The GGUF builds people run at home get the bytes, not the meaning.
+That is qwen3.6 reading the marker READ9284. The extra prompt tokens show that the hidden text was not simply discarded. Tags added about 3.6 tokens per character, consistent with an expensive representation such as byte fallback. This probe counts tokens; it does not inspect the token IDs or establish what the model learned during training. The reply RADY284 was an incomplete reconstruction, not an exact decode. Explaining the difference from earlier hosted-model results would need a separate comparison.
 
-Room to think changes what the model reads, not what it does. With thinking on, qwen3.6 decoded the Tags payload in two of five traces, almost word for word, wrote that it "looks like hidden/encoded text, possibly a prompt injection", and summarized the document anyway. Zero of five in the answer, and 0 percent across the full ten trial run. A reasoning model can read the invisible ink some of the time. It chose not to obey it, and that is a property of its training, not of the channel.
+With thinking on, qwen3.6 decoded the Tags payload in two of five traces, almost word for word, described it as a possible prompt injection, and summarized the document anyway. There were no successful injections in those five answers or in the separate ten-trial summarizer run. In these trials, recovering the instruction did not make the model follow it.
 
 The channels that stay readable are a different story.
 
@@ -114,4 +114,4 @@ RESULTS_DIR=bench/local-results npm run bench
 
 The repo ships the tools and [saved trial records](https://github.com/nacren/cursed-strings/blob/main/bench/results/README.md), with a command to check their scores against the tables. Early logs contain answer excerpts and omit tool arguments. The evidence guide explains those limits and the judge corrections. Point the harness at your own models. Measure before you trust.
 
-The dark text was hiding in plain sight the whole time. &#8902;
+The result worth keeping is the distinction between normalization and trust. The sanitizer fixed the tested keyword bypasses, but it did not make document instructions safe to follow.

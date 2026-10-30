@@ -1,8 +1,7 @@
-// Eleventy config. Input in src/, output to _site/.
-// Markdown posts are NOT run through a template engine, so code and braces in
-// posts are left exactly as written.
+import { HtmlBasePlugin } from "@11ty/eleventy";
 
 export default function (eleventyConfig) {
+  eleventyConfig.addPlugin(HtmlBasePlugin);
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
 
   eleventyConfig.addFilter("date", (value) => {
@@ -16,6 +15,7 @@ export default function (eleventyConfig) {
 
   return {
     dir: { input: "src", includes: "_includes", data: "_data", output: "_site" },
+    // Leave code examples and braces in Markdown untouched.
     markdownTemplateEngine: false,
     htmlTemplateEngine: "njk",
   };

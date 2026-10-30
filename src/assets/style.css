@@ -19,6 +19,9 @@ body {
 }
 a { color: var(--accent2); text-decoration: none; }
 a:hover { text-decoration: underline; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.skip-link { position: absolute; left: 20px; top: -80px; padding: 8px 12px; background: var(--panel); }
+.skip-link:focus { top: 8px; }
 
 header.site, footer.site { max-width: 760px; margin: 0 auto; padding: 22px 20px; }
 header.site {
@@ -29,7 +32,6 @@ header.site {
   font-family: ui-monospace, Menlo, Consolas, monospace;
   font-weight: 700; color: var(--ink); font-size: 16px;
 }
-.brand .prompt { color: var(--accent); }
 header.site nav {
   display: flex; gap: 16px;
   font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px;
@@ -62,7 +64,11 @@ th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
 th { background: var(--panel); }
 
 hr { border: none; border-top: 1px solid var(--line); margin: 2em 0; }
-img { max-width: 100%; }
+img { max-width: 100%; height: auto; }
+
+@media (max-width: 540px) {
+  table { display: block; overflow-x: auto; }
+  .postlist .date { display: block; margin-left: 0; }
+}
 
 footer.site { color: var(--muted); text-align: center; border-top: 1px solid var(--line); font-size: 13px; }
-.sigil { color: var(--accent); }

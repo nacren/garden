@@ -6,19 +6,20 @@
 <title>{% if title %}{{ title }} · {% endif %}{{ site.title }}</title>
 <meta name="description" content="{{ summary or site.tagline }}">
 <meta name="color-scheme" content="dark">
+<link rel="canonical" href="{{ site.url }}{{ page.url }}">
 <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="site">
-  <a class="brand" href="/">{{ site.title }}<span class="prompt"> ~$</span></a>
-  <nav>
+  <a class="brand" href="/">{{ site.title }}</a>
+  <nav aria-label="Main navigation">
     <a href="/">home</a>
     <a href="/about/">about</a>
-    <a href="/keys/">keys</a>
     <a href="/contact/">contact</a>
   </nav>
 </header>
-<main>
+<main id="main">
 {{ content | safe }}
 </main>
 <footer class="site">
