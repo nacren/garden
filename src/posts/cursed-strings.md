@@ -10,9 +10,9 @@ topics:
 
 *Unicode prompt injection across six local models, and when sanitizing helps or hurts.*
 
-Unicode lets a document carry text that is invisible on screen, or swap ordinary letters for similar-looking characters from another script. A person, a substring filter, and a language model can each read that document differently.
+Unicode lets a document carry text that is invisible on screen, or swap ordinary letters for similar looking characters from another script. A person, a substring filter, and a language model can each read that document differently.
 
-Does that difference let hidden instructions work on local models? This project tests four encodings with `smuggle` and a sanitizer called `exorcist`, using six open-weight models through Ollama. Each case has ten trials and a harmless canary as its payload. The saved results include both failed attacks and cases where sanitizing made injection more effective.
+Does that difference let hidden instructions work on local models? This project tests four encodings with `smuggle` and a sanitizer called `exorcist`, using six open weights models through Ollama. Each case has ten trials and a harmless canary as its payload. The saved results include both failed attacks and cases where sanitizing made injection more effective.
 
 ## Four ways to lie with text
 
@@ -23,13 +23,13 @@ const encodeTag = (s) =>
   [...s].map((c) => String.fromCodePoint(0xe0000 + c.codePointAt(0))).join("")
 ```
 
-This is the "ASCII smuggling" trick that worked on hosted GPT-4, Claude, and Gemini in 2024. Credit to Riley Goodside and Johann Rehberger for the early writeups.
+This is the "ASCII smuggling" trick. Riley Goodside showed ChatGPT reading it in January 2024. Johann Rehberger built a tool around it and turned it on Microsoft 365 Copilot later that year.
 
 **Zero width.** Encode each byte as eight U+200B and U+200C characters. Invisible, and it survives copy and paste. Or drop one between every visible letter, so PINEAPPLE still reads fine to a person but no longer matches the string PINEAPPLE. A soft hyphen, U+00AD, does the same job and sits on far fewer block lists.
 
-**Variation selectors (U+FE00 to U+FE0F and U+E0100 to U+E01EF).** There are 256 of them, one per byte. This is the 2025 emoji smuggling trick.
+**Variation selectors (U+FE00 to U+FE0F and U+E0100 to U+E01EF).** There are 256 of them, one per byte. Paul Butler showed this emoji smuggling trick in February 2025.
 
-**Homoglyphs.** Swap Latin letters for Cyrillic or Greek look alikes. "admin" becomes "аdmin" with a Cyrillic а. Visible. Readable. Not the bytes your filter is looking for. This is the cousin of Boucher and Anderson's Trojan Source from 2021.
+**Homoglyphs.** Swap Latin letters for Cyrillic or Greek look alikes. "admin" becomes "аdmin" with a Cyrillic а. Visible. Readable. Not the bytes your filter is looking for. Boucher, Shumailov, Anderson and Papernot measured tricks like this against language systems in Bad Characters, 2022. Trojan Source is the cousin for source code.
 
 ## The lab
 
@@ -51,7 +51,7 @@ Tags, pure zero width, and variation selectors scored 0 percent in both injectio
 
 My first explanation was that the llama.cpp tokenizers throw those code points away before the model sees them. It is a tidy story. It is also wrong, and I only found out because I counted tokens.
 
-| channel | prompt tokens added | per hidden character | the model's echo |
+| channel | prompt tokens added | per code point | the model's echo |
 |---|---|---|---|
 | plain text | 5 | 0.6 | READ9284 |
 | Unicode Tags | 29 | 3.6 | RADY284 |
@@ -60,9 +60,9 @@ My first explanation was that the llama.cpp tokenizers throw those code points a
 | homoglyphs | 8 | 1.0 | READ9284 |
 | soft hyphen spacing | 15 | 1.0 | READ9284 |
 
-That is qwen3.6 reading the marker READ9284. The extra prompt tokens show that the hidden text was not simply discarded. Tags added about 3.6 tokens per character, consistent with an expensive representation such as byte fallback. This probe counts tokens; it does not inspect the token IDs or establish what the model learned during training. The reply RADY284 was an incomplete reconstruction, not an exact decode. Explaining the difference from earlier hosted-model results would need a separate comparison.
+That is qwen3.6 reading the marker READ9284. The extra prompt tokens show that the hidden text was not simply discarded. Tags added about 3.6 tokens per character, consistent with an expensive representation such as byte fallback. This probe counts tokens. It does not inspect the token IDs or establish what the model learned during training. The reply RADY284 was an incomplete reconstruction, not an exact decode. Explaining the difference from earlier hosted-model results would need a separate comparison.
 
-With thinking on, qwen3.6 decoded the Tags payload in two of five traces, almost word for word, described it as a possible prompt injection, and summarized the document anyway. There were no successful injections in those five answers or in the separate ten-trial summarizer run. In these trials, recovering the instruction did not make the model follow it.
+With thinking on, qwen3.6 decoded the Tags payload in two of five traces, almost word for word, wrote that it "looks like hidden/encoded text", and summarized the document anyway. There were no successful injections in those five answers or in the separate ten trial summarizer run. In these trials, recovering the instruction did not make the model follow it.
 
 The channels that stay readable are a different story.
 
