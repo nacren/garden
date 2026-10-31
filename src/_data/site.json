@@ -1,6 +1,7 @@
 {
   "title": "nacren",
-  "tagline": "research, experiments, and tools",
+  "tagline": "Unicode, text rendering, and what a language model actually reads.",
   "url": "https://nacren.github.io/garden",
-  "repository": "https://github.com/nacren/garden"
+  "repository": "https://github.com/nacren/garden",
+  "github": "https://github.com/nacren"
 }
