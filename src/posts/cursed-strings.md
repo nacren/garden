@@ -44,14 +44,7 @@ Plain visible instructions worked 60 to 100 percent of the time. Hidden in Tags,
 
 I assumed the tokenizer was dropping those characters. Counting prompt tokens on qwen3.6 showed it was not.
 
-| how the code was sent | extra prompt tokens | the model's answer |
-|---|---|---|
-| plain text | 5 | READ9284 |
-| Unicode Tags | 29 | RADY284 |
-| zero width bits | 49 | Error |
-| variation selectors | 33 | "I cannot repeat the content" |
-| look alike letters | 8 | READ9284 |
-| soft hyphen spacing | 15 | READ9284 |
+Plain text added 5 tokens and came back as READ9284. Unicode Tags added 29 and came back as RADY284. Zero width bits added 49 and the model replied with the word Error. Variation selectors added 33 and the model said it could not repeat the content. Look alike letters added 8 and soft hyphen spacing added 15, and both came back as READ9284.
 
 The hidden characters cost more tokens than plain text, not fewer. A Tags character is four bytes and cost about 3.6 tokens, which looks like the tokenizer splitting it into byte pieces. The model receives the whole message. It just mostly can't turn the pieces back into letters. RADY284 for READ9284 is close, but wrong.
 
@@ -59,12 +52,7 @@ There were two exceptions. In the filter test, qwen3.6 once recognized a Tags en
 
 ## The look alike letters worked
 
-| attack | range across models |
-|---|---|
-| zero width letter spacing past the filter (S3) | 70 to 100 percent |
-| look alike word past the filter (S3) | 0 to 90 percent |
-| look alike instruction, agent (S2) | 10 to 100 percent |
-| look alike instruction, summarizer (S1) | 0 to 90 percent |
+Zero width letter spacing got past the filter 70 to 100 percent of the time, depending on the model. A look alike word got past it 0 to 90 percent of the time. A look alike instruction hijacked the agent 10 to 100 percent of the time and the summarizer 0 to 90 percent.
 
 The agent test is the strongest result. llama3.1 and qwen3.6 sent the hidden message in all ten tries. This is one of qwen3.6's calls from the log.
 
